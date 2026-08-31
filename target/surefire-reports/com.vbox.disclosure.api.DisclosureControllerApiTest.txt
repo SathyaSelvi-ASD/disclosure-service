@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.vbox.disclosure.api.DisclosureControllerApiTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.874 s -- in com.vbox.disclosure.api.DisclosureControllerApiTest

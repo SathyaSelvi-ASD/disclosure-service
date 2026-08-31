@@ -45,4 +45,13 @@ public class DisclosureController {
         ApiResponse response = new ApiResponse("SUCCESS", HttpStatus.OK.value(), "", List.of(), List.of(), result);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/search/work-action")
+    public ResponseEntity<ApiResponse> searchWorkAction(
+            @RequestParam("work_action_referenceid") String workActionReferenceId) {
+        log.info("Processing work action search request workActionReferenceId={}", workActionReferenceId);
+        ApiResponse response =
+                useCase.searchWorkAction(workActionReferenceId);
+        return ResponseEntity.ok(response);
+    }
 }

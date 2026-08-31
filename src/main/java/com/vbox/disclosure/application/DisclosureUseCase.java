@@ -1,29 +1,55 @@
 package com.vbox.disclosure.application;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vbox.disclosure.api.dto.request.CreateDisclosureDto;
 import com.vbox.disclosure.api.dto.request.DisclosureDto;
 import com.vbox.disclosure.api.dto.request.DisclosureSearchDto;
+import com.vbox.disclosure.api.dto.response.ApiResponse;
 import com.vbox.disclosure.api.dto.response.SearchResponseDto;
 import com.vbox.disclosure.application.exception.DisclosurePersistenceException;
 import com.vbox.disclosure.application.exception.DuplicateDisclosureException;
+import com.vbox.disclosure.config.WorkActionClientProperties;
 import com.vbox.disclosure.domain.Disclosure;
 import com.vbox.disclosure.persistence.DisclosureEntity;
 import com.vbox.disclosure.persistence.DisclosureRepository;
 import com.vbox.disclosure.persistence.mapper.DisclosureMapper;
 import jakarta.persistence.criteria.Predicate;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StreamUtils;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
+
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DisclosureUseCase {
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     private final DisclosureRepository repository;
+    private final RestClient workActionRestClient;
+    private final WorkActionClientProperties workActionClientProperties;
+
+    public DisclosureUseCase(
+            DisclosureRepository repository,
+            @Qualifier("workActionRestClient") RestClient workActionRestClient,
+            WorkActionClientProperties workActionClientProperties) {
+        this.repository = repository;
+        this.workActionRestClient = workActionRestClient;
+        this.workActionClientProperties = workActionClientProperties;
+    }
 
     @Transactional
     public DisclosureDto create(CreateDisclosureDto request) {
@@ -56,5 +82,54 @@ public class DisclosureUseCase {
         log.info("Disclosure search completed totalElements={}", result.getTotalElements());
         return new SearchResponseDto(items, result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages());
     }
+
+    @Transactional(readOnly = true)
+    public ApiResponse searchWorkAction(String workActionReferenceId) {
+        log.info("Searching work action by referenceId={}", workActionReferenceId);
+
+        try {
+            return workActionRestClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path(workActionClientProperties.searchPath())
+                            .queryParam("refId", workActionReferenceId)
+                            .build())
+                    .retrieve()
+                    .body(ApiResponse.class);
+
+        } catch (RestClientResponseException ex) {
+            log.error(
+                    "Work Action API failed. referenceId={}, status={}",
+                    workActionReferenceId,
+                    ex.getStatusCode(),
+                    ex
+            );
+
+            return new ApiResponse(
+                    "ERROR",
+                    ex.getStatusCode().value(),
+                    "Work Action search failed.",
+                    List.of(),
+                    List.of(),
+                    null
+            );
+
+        } catch (RestClientException ex) {
+            log.error(
+                    "Work action service unavailable referenceId={}",
+                    workActionReferenceId,
+                    ex
+            );
+
+            return new ApiResponse(
+                    "ERROR",
+                    HttpStatus.BAD_GATEWAY.value(),
+                    "Work Action service is unavailable.",
+                    List.of(),
+                    List.of(),
+                    null
+            );
+        }
+    }
+
     private boolean hasText(String value) { return value != null && !value.isBlank(); }
 }

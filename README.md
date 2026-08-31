@@ -22,6 +22,17 @@ mvn clean test
 mvn spring-boot:run
 ```
 
+## Work Action service client configuration
+Configure outbound Work Action search client through properties:
+
+- `WORK_ACTION_BASE_URL` (default: `http://localhost:8081`)
+- `WORK_ACTION_SEARCH_PATH` (default: `/api/v1/work-actions/search`)
+
+These map to:
+
+- `work-action.client.base-url`
+- `work-action.client.search-path`
+
 ## Endpoints
 ```bash
 curl -H "Accept-Language: en" http://localhost:8080/api/disclosures/v1/greet
@@ -33,6 +44,8 @@ curl -X POST http://localhost:8080/api/disclosures/v1 \
 curl -X POST http://localhost:8080/api/disclosures/v1/search \
   -H "Content-Type: application/json" \
   -d '{"referenceNumber":"DISC-1001","customerId":"CUST-101","status":"DRAFT","page":0,"pageSize":20}'
+
+curl "http://localhost:8080/api/disclosures/v1/search/work-action?work_action_referenceid=WA-1001"
 ```
 
 ## Azure Monitor / OpenTelemetry
@@ -41,5 +54,6 @@ The POM includes `azure-monitor-opentelemetry-autoconfigure` as requested. Suppl
 ## Notes
 - DTOs are separate from domain and JPA entity representations.
 - Search is POST `/search`; create is POST on the resource root.
+- Work Action search pass-through endpoint is GET `/search/work-action` with `work_action_referenceid`.
 - Errors use the Section 13 standard response fields and include a trace ID when an active OpenTelemetry span exists.
 - For production, replace `ddl-auto: update` with Liquibase migrations.

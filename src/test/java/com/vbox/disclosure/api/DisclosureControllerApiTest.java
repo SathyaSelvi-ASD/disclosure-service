@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vbox.disclosure.api.dto.request.CreateDisclosureDto;
 import com.vbox.disclosure.api.dto.request.DisclosureDto;
 import com.vbox.disclosure.api.dto.request.DisclosureSearchDto;
+import com.vbox.disclosure.api.dto.response.ApiResponse;
 import com.vbox.disclosure.api.dto.response.SearchResponseDto;
 import com.vbox.disclosure.application.DisclosureUseCase;
 import com.vbox.disclosure.i18n.MessageResolver;
@@ -15,14 +16,17 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -147,6 +151,25 @@ class DisclosureControllerApiTest {
                 .search(any(DisclosureSearchDto.class));
     }
 
+    @Test
+    void shouldSearchWorkActionByReferenceId() throws Exception {
+        when(useCase.searchWorkAction("WA-1001"))
+                .thenReturn(new ApiResponse("SUCCESS", 200, "", List.of(), List.of(), Map.of("work_action_referenceid", "WA-1001")));
+
+        mockMvc.perform(get("/api/disclosures/v1/search/work-action")
+                        .param("work_action_referenceid", "WA-1001"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.statusCode").value(200))
+                .andExpect(jsonPath("$.message").value(""))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.warnings").isArray())
+                .andExpect(jsonPath("$.data.work_action_referenceid").value("WA-1001"));
+
+        verify(useCase).searchWorkAction("WA-1001");
+    }
+
     @TestConfiguration
     static class TestConfig {
 
@@ -158,4 +181,3 @@ class DisclosureControllerApiTest {
         }
     }
 }
-

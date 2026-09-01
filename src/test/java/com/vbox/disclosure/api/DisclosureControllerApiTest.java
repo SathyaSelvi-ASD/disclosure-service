@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vbox.disclosure.api.dto.request.CreateDisclosureDto;
 import com.vbox.disclosure.api.dto.request.DisclosureDto;
 import com.vbox.disclosure.api.dto.request.DisclosureSearchDto;
+import com.vbox.disclosure.api.dto.response.ApiResponse;
 import com.vbox.disclosure.api.dto.response.SearchResponseDto;
 import com.vbox.disclosure.application.DisclosureUseCase;
 import com.vbox.disclosure.i18n.MessageResolver;
@@ -109,21 +110,28 @@ class DisclosureControllerApiTest {
                 20
         );
 
-        SearchResponseDto response = new SearchResponseDto(
-                List.of(
-                        new DisclosureDto(
-                                1L,
-                                "REF-12345",
-                                "CUST-101",
-                                "Basic disclosure",
-                                "DRAFT",
-                                Instant.parse("2026-08-28T00:00:00Z")
-                        )
-                ),
-                0,
-                20,
-                1L,
-                1
+        ApiResponse response = new ApiResponse(
+                "SUCCESS",
+                200,
+                "",
+                List.of(),
+                List.of(),
+                new SearchResponseDto(
+                        List.of(
+                                new DisclosureDto(
+                                        1L,
+                                        "REF-12345",
+                                        "CUST-101",
+                                        "Basic disclosure",
+                                        "DRAFT",
+                                        Instant.parse("2026-08-28T00:00:00Z")
+                                )
+                        ),
+                        0,
+                        20,
+                        1L,
+                        1
+                )
         );
 
         when(useCase.search(any(DisclosureSearchDto.class)))

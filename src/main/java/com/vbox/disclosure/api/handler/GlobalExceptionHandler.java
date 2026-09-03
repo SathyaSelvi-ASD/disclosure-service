@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ApiResponse> build(HttpStatus status, String message, List<ApiMessage> errors) {
-        var body = new ApiResponse("ERROR", status.value(), message, errors, List.of(), null);
+        var body = new ApiResponse("ERROR", status.value(), message, errors, List.of(), Map.of());
         return ResponseEntity.status(status).body(body);
     }
 }

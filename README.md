@@ -33,6 +33,19 @@ curl -X POST http://localhost:8080/api/disclosures/v1 \
 curl -X POST http://localhost:8080/api/disclosures/v1/search \
   -H "Content-Type: application/json" \
   -d '{"referenceNumber":"DISC-1001","customerId":"CUST-101","status":"DRAFT","page":0,"pageSize":20}'
+
+curl -X POST http://localhost:8080/api/disclosures/v1/disclosure-receipts \
+  -H "Content-Type: application/json" \
+  -d '{
+    "workActionId":"WA-1001",
+    "customerId":"CUST-101",
+    "receiptType":"DISCLOSURE",
+    "deliveryChannel":"EMAIL",
+    "recipient":"customer@example.com",
+    "receivedAt":"2025-01-15T10:00:00Z",
+    "referenceNumber":"DISC-1001",
+    "notes":"Disclosure delivered by email"
+  }'
 ```
 
 ## Azure Monitor / OpenTelemetry

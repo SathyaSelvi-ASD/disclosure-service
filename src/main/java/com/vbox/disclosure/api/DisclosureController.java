@@ -4,7 +4,6 @@ import com.vbox.disclosure.api.dto.request.CreateDisclosureDto;
 import com.vbox.disclosure.api.dto.request.DisclosureDto;
 import com.vbox.disclosure.api.dto.request.DisclosureSearchDto;
 import com.vbox.disclosure.api.dto.response.ApiResponse;
-import com.vbox.disclosure.api.dto.response.SearchResponseDto;
 import com.vbox.disclosure.application.DisclosureUseCase;
 import com.vbox.disclosure.i18n.*;
 import jakarta.validation.Valid;
@@ -41,8 +40,7 @@ public class DisclosureController {
     @PostMapping("/search")
     public ResponseEntity<ApiResponse> search(@Valid @RequestBody DisclosureSearchDto request) {
         log.info("Processing disclosure search request");
-        SearchResponseDto result = useCase.search(request);
-        ApiResponse response = new ApiResponse("SUCCESS", HttpStatus.OK.value(), "", List.of(), List.of(), result);
-        return ResponseEntity.ok(response);
+        ApiResponse response = useCase.search(request);
+        return ResponseEntity.status(HttpStatus.valueOf(response.statusCode())).body(response);
     }
 }

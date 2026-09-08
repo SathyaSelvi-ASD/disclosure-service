@@ -10,8 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import java.util.List;
+import java.util.Comparator;
 
 @RestControllerAdvice
 public class DisclosureReceiptExceptionHandler {
@@ -19,6 +21,9 @@ public class DisclosureReceiptExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
         List<ApiMessage> errors = ex.getBindingResult().getFieldErrors().stream()
+                .sorted(Comparator
+                        .comparing((org.springframework.validation.FieldError fieldError) -> isDerivedValidationField(fieldError.getField()))
+                        .thenComparing(org.springframework.validation.FieldError::getField))
                 .map(fieldError -> new ApiMessage(
                         "ERR-VALIDATION-" + fieldError.getField().toUpperCase(),
                         fieldError.getDefaultMessage()))
@@ -57,8 +62,20 @@ public class DisclosureReceiptExceptionHandler {
         );
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse> handleUnreadableRequest(HttpMessageNotReadableException ex) {
+        String message = "Request contains an invalid value or date/time format.";
+        return build(HttpStatus.BAD_REQUEST, message,
+                List.of(new ApiMessage("ERR-VALIDATION-REQUEST", message)));
+    }
+
     private ResponseEntity<ApiResponse> build(HttpStatus status, String message, List<ApiMessage> errors) {
         return build(status, message, errors, java.util.Map.of());
+    }
+
+    private boolean isDerivedValidationField(String field) {
+        return field.endsWith("ValidForDeliveryChannel") || field.endsWith("NotInFuture")
+                || field.endsWith("CriteriaProvided") || field.endsWith("RangeValid");
     }
 
     private ResponseEntity<ApiResponse> build(HttpStatus status, String message, List<ApiMessage> errors, Object data) {

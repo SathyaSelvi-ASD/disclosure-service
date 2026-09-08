@@ -22,6 +22,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
         log.info("Handling request validation failure fieldErrorCount={}", ex.getBindingResult().getFieldErrorCount());
         List<ApiMessage> errors = ex.getBindingResult().getFieldErrors().stream()
+                .sorted(Comparator
+                        .comparing((org.springframework.validation.FieldError e) -> isDerivedValidationField(e.getField()))
+                        .thenComparing(org.springframework.validation.FieldError::getField))
                 .map(e -> new ApiMessage("ERR-VALIDATION-" + e.getField().toUpperCase(), e.getDefaultMessage()))
                 .toList();
         return build(HttpStatus.BAD_REQUEST, messages.get(MessageKey.VALIDATION_FAILED, LocaleContextHolder.getLocale()), errors);
@@ -51,5 +54,10 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ApiResponse> build(HttpStatus status, String message, List<ApiMessage> errors) {
         var body = new ApiResponse("ERROR", status.value(), message, errors, List.of(), Map.of());
         return ResponseEntity.status(status).body(body);
+    }
+
+    private boolean isDerivedValidationField(String field) {
+        return field.endsWith("ValidForDeliveryChannel") || field.endsWith("NotInFuture")
+                || field.endsWith("CriteriaProvided") || field.endsWith("RangeValid");
     }
 }

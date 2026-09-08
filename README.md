@@ -46,6 +46,16 @@ curl -X POST http://localhost:8080/api/disclosures/v1/disclosure-receipts \
     "referenceNumber":"DISC-1001",
     "notes":"Disclosure delivered by email"
   }'
+
+curl -X POST http://localhost:8080/api/disclosures/v1/disclosure-receipts/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId":"CUST-101",
+    "receiptType":"DISCLOSURE",
+    "status":"CREATED",
+    "fromReceivedAt":"2026-09-01T00:00:00Z",
+    "toReceivedAt":"2026-09-08T23:59:59Z"
+  }'
 ```
 
 ## Azure Monitor / OpenTelemetry
@@ -53,6 +63,6 @@ The POM includes `azure-monitor-opentelemetry-autoconfigure` as requested. Suppl
 
 ## Notes
 - DTOs are separate from domain and JPA entity representations.
-- Search is POST `/search`; create is POST on the resource root.
+- Disclosure receipt search is POST `/api/disclosures/v1/disclosure-receipts/search` and requires at least one criterion.
 - Errors use the Section 13 standard response fields and include a trace ID when an active OpenTelemetry span exists.
 - For production, replace `ddl-auto: update` with Liquibase migrations.

@@ -237,7 +237,7 @@ Generate
 
 Generate
 
-```java
+```text
 @PostMapping("/disclosure-receipts")
 public ResponseEntity<ApiResponse<CreateDisclosureReceiptResponse>>
 createDisclosureReceipt(

@@ -142,7 +142,7 @@ Review the controller first.
 
 Example:
 
-```java
+```text
 @PostMapping
 public ResponseEntity<ApiResponse> create(
         @Valid @RequestBody CreateDisclosureReceiptRequest request) {
@@ -170,7 +170,7 @@ Check:
 
 Flag business logic such as:
 
-```java
+```text
 if (request.getCustomerId() == null) {
     ...
 }
@@ -188,7 +188,7 @@ Check the request DTO against the API specification.
 
 Example:
 
-```java
+```text
 public record CreateDisclosureReceiptRequest(
         @NotBlank
         String workActionId,
@@ -237,7 +237,7 @@ Verify that the controller delegates to the correct use case.
 
 Example:
 
-```java
+```text
 public interface DisclosureReceiptUseCase {
 
     ApiResponse create(CreateDisclosureReceiptRequest request);
@@ -297,7 +297,7 @@ Check:
 
 Example issue:
 
-```java
+```text
 for (DisclosureReceipt receipt : receipts) {
     customerRepository.findById(receipt.getCustomerId());
 }
@@ -341,7 +341,7 @@ Do not recommend returning stack traces to API clients.
 
 Bad:
 
-```java
+```text
 catch (Exception e) {
     return new ApiResponse(
         500,
@@ -396,7 +396,7 @@ Check logging.
 
 Good:
 
-```java
+```text
 log.info(
     "Creating disclosure receipt for workActionId={}",
     request.workActionId()
@@ -405,7 +405,7 @@ log.info(
 
 Bad:
 
-```java
+```text
 log.info("Request: {}", request);
 ```
 
@@ -442,7 +442,7 @@ Immediately report hardcoded secrets.
 
 Example:
 
-```java
+```text
 private static final String PASSWORD = "password123";
 ```
 
@@ -484,7 +484,7 @@ Check for:
 
 Example:
 
-```java
+```text
 mockMvc.perform(
         post("/api/disclosures/v1/disclosure-receipts")
             .contentType(MediaType.APPLICATION_JSON)

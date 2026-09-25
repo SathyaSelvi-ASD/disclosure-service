@@ -64,9 +64,29 @@ public class DisclosureReceiptExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse> handleUnreadableRequest(HttpMessageNotReadableException ex) {
+        String exceptionMessage = ex.getMessage();
+        ApiMessage enumError = enumError(exceptionMessage, "DeliveryChannel", "deliveryChannel", "EMAIL, PORTAL, SMS, POST");
+        if (enumError == null) {
+            enumError = enumError(exceptionMessage, "ReceiptType", "receiptType", "DISCLOSURE, ACKNOWLEDGEMENT");
+        }
+        if (enumError == null) {
+            enumError = enumError(exceptionMessage, "DisclosureReceiptStatus", "status", "CREATED, SENT, FAILED");
+        }
+        if (enumError != null) {
+            return build(HttpStatus.BAD_REQUEST, enumError.message(), List.of(enumError));
+        }
+
         String message = "Request contains an invalid value or date/time format.";
         return build(HttpStatus.BAD_REQUEST, message,
                 List.of(new ApiMessage("ERR-VALIDATION-REQUEST", message)));
+    }
+
+    private ApiMessage enumError(String exceptionMessage, String enumType, String field, String allowedValues) {
+        if (exceptionMessage == null || !exceptionMessage.contains(enumType)) {
+            return null;
+        }
+        String message = field + " must be one of: " + allowedValues + ".";
+        return new ApiMessage("ERR-VALIDATION-" + field.toUpperCase(), message);
     }
 
     private ResponseEntity<ApiResponse> build(HttpStatus status, String message, List<ApiMessage> errors) {

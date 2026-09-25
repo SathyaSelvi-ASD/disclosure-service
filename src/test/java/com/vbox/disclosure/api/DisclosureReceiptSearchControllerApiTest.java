@@ -86,4 +86,17 @@ class DisclosureReceiptSearchControllerApiTest {
                 .andExpect(status().isBadRequest());
         verifyNoInteractions(searchUseCase);
     }
+
+    @Test
+    void shouldIdentifyAnInvalidDeliveryChannel() throws Exception {
+        mockMvc.perform(post("/api/disclosures/v1/disclosure-receipts/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"deliveryChannel\":\"EMAIL-NEW\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("deliveryChannel must be one of: EMAIL, PORTAL, SMS, POST."))
+                .andExpect(jsonPath("$.errors[0].code").value("ERR-VALIDATION-DELIVERYCHANNEL"))
+                .andExpect(jsonPath("$.errors[0].message")
+                        .value("deliveryChannel must be one of: EMAIL, PORTAL, SMS, POST."));
+        verifyNoInteractions(searchUseCase);
+    }
 }

@@ -3,8 +3,11 @@ package com.vbox.disclosure.api;
 import com.vbox.disclosure.api.dto.request.CreateDisclosureDto;
 import com.vbox.disclosure.api.dto.request.DisclosureDto;
 import com.vbox.disclosure.api.dto.request.DisclosureSearchDto;
+import com.vbox.disclosure.api.dto.request.ReceiptDisplayRequest;
 import com.vbox.disclosure.api.dto.response.ApiResponse;
+import com.vbox.disclosure.api.dto.response.ReceiptDisplayResponse;
 import com.vbox.disclosure.application.DisclosureUseCase;
+import com.vbox.disclosure.application.ReceiptDisplayUseCase;
 import com.vbox.disclosure.i18n.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DisclosureController {
     private final DisclosureUseCase useCase;
+    private final ReceiptDisplayUseCase receiptDisplayUseCase;
     private final MessageResolver messages;
 
     @GetMapping("/greet")
@@ -42,5 +46,13 @@ public class DisclosureController {
         log.info("Processing disclosure search request");
         ApiResponse response = useCase.search(request);
         return ResponseEntity.status(HttpStatus.valueOf(response.statusCode())).body(response);
+    }
+
+    @PostMapping("/receipt/display")
+    public ResponseEntity<ApiResponse> displayReceipt(@Valid @RequestBody ReceiptDisplayRequest request) {
+        ReceiptDisplayResponse result = receiptDisplayUseCase.display(request);
+        ApiResponse response = new ApiResponse("SUCCESS", HttpStatus.ACCEPTED.value(),
+                "Receipt display event published.", List.of(), List.of(), result);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 }

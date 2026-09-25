@@ -56,6 +56,40 @@ curl -X POST http://localhost:8080/api/disclosures/v1/disclosure-receipts/search
     "fromReceivedAt":"2026-09-01T00:00:00Z",
     "toReceivedAt":"2026-09-08T23:59:59Z"
   }'
+
+curl -X POST http://localhost:8080/api/disclosures/v1/receipt/display \
+  -H "Content-Type: application/json" \
+  -d '{
+    "receiptId":"REC-1001",
+    "workActionId":"WA-1001",
+    "customerId":"CUST-101",
+    "referenceNumber":"DISC-1001",
+    "displayedBy":"review-team"
+  }'
+```
+
+## Receipt display event
+
+`POST /api/disclosures/v1/receipt/display` returns `202 Accepted` and publishes a
+JSON event to the `receipt-display` Kafka topic (override with
+`KAFKA_RECEIPT_DISPLAY_TOPIC`).
+
+Sample response:
+
+```json
+{
+  "status": "SUCCESS",
+  "statusCode": 202,
+  "message": "Receipt display event published.",
+  "errors": [],
+  "warnings": [],
+  "data": {
+    "eventId": "d472f3d1-9e62-42fe-90ae-a8513bcb2fed",
+    "receiptId": "REC-1001",
+    "topic": "receipt-display",
+    "publishedAt": "2026-09-25T10:30:00Z"
+  }
+}
 ```
 
 ## Azure Monitor / OpenTelemetry

@@ -8,6 +8,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 @Repository
 public class DisclosureReceiptRepositoryAdapter implements DisclosureReceiptRepository {
@@ -57,7 +59,7 @@ public class DisclosureReceiptRepositoryAdapter implements DisclosureReceiptRepo
 
     @Override
     public List<DisclosureReceipt> search(DisclosureReceiptSearchCommand command) {
-        Specification<DisclosureReceiptJpaEntity> specification = Specification.allOf(
+        Specification<DisclosureReceiptJpaEntity> specification = Specification.allOf(Stream.of(
                 equalsIfSupplied("workActionId", command.workActionId()),
                 equalsIfSupplied("customerId", command.customerId()),
                 equalsIfSupplied("receiptType", command.receiptType()),
@@ -66,7 +68,7 @@ public class DisclosureReceiptRepositoryAdapter implements DisclosureReceiptRepo
                 equalsIfSupplied("referenceNumber", command.referenceNumber()),
                 fromReceivedAtIfSupplied(command.fromReceivedAt()),
                 toReceivedAtIfSupplied(command.toReceivedAt())
-        );
+        ).filter(Objects::nonNull).toList());
 
         return repository.findAll(specification).stream().map(this::toDomain).toList();
     }

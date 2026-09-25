@@ -5,9 +5,12 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vbox.disclosure.api.dto.request.CreateDisclosureDto;
 import com.vbox.disclosure.api.dto.request.DisclosureDto;
 import com.vbox.disclosure.api.dto.request.DisclosureSearchDto;
+import com.vbox.disclosure.api.dto.request.ReceiptDisplayRequest;
 import com.vbox.disclosure.api.dto.response.ApiResponse;
+import com.vbox.disclosure.api.dto.response.ReceiptDisplayResponse;
 import com.vbox.disclosure.api.dto.response.SearchResponseDto;
 import com.vbox.disclosure.application.DisclosureUseCase;
+import com.vbox.disclosure.application.ReceiptDisplayUseCase;
 import com.vbox.disclosure.i18n.MessageResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +47,9 @@ class DisclosureControllerApiTest {
 
     @MockitoBean
     private DisclosureUseCase useCase;
+
+    @MockitoBean
+    private ReceiptDisplayUseCase receiptDisplayUseCase;
 
     @MockitoBean
     private MessageResolver messageResolver;
@@ -153,6 +159,25 @@ class DisclosureControllerApiTest {
         // Verify
         verify(useCase)
                 .search(any(DisclosureSearchDto.class));
+    }
+
+    @Test
+    void shouldPublishReceiptDisplayEvent() throws Exception {
+        ReceiptDisplayRequest request = new ReceiptDisplayRequest(
+                "REC-1001", "WA-1001", "CUST-101", "DISC-1001", "review-team");
+        when(receiptDisplayUseCase.display(any(ReceiptDisplayRequest.class)))
+                .thenReturn(new ReceiptDisplayResponse("event-1", "REC-1001", "receipt-display",
+                        Instant.parse("2026-09-25T10:30:00Z")));
+
+        mockMvc.perform(post("/api/disclosures/v1/receipt/display")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.statusCode").value(202))
+                .andExpect(jsonPath("$.data.receiptId").value("REC-1001"))
+                .andExpect(jsonPath("$.data.topic").value("receipt-display"));
+
+        verify(receiptDisplayUseCase).display(any(ReceiptDisplayRequest.class));
     }
 
     @TestConfiguration

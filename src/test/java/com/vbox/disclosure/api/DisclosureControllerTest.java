@@ -1,6 +1,7 @@
 package com.vbox.disclosure.api;
 
 import com.vbox.disclosure.application.DisclosureUseCase;
+import com.vbox.disclosure.application.ReceiptDisplayUseCase;
 import com.vbox.disclosure.i18n.MessageResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 class DisclosureControllerTest {
     @Autowired MockMvc mockMvc;
     @MockitoBean DisclosureUseCase useCase;
+    @MockitoBean ReceiptDisplayUseCase receiptDisplayUseCase;
     @MockitoBean MessageResolver messages;
 
     @Test

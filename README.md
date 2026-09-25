@@ -33,6 +33,63 @@ curl -X POST http://localhost:8080/api/disclosures/v1 \
 curl -X POST http://localhost:8080/api/disclosures/v1/search \
   -H "Content-Type: application/json" \
   -d '{"referenceNumber":"DISC-1001","customerId":"CUST-101","status":"DRAFT","page":0,"pageSize":20}'
+
+curl -X POST http://localhost:8080/api/disclosures/v1/disclosure-receipts \
+  -H "Content-Type: application/json" \
+  -d '{
+    "workActionId":"WA-1001",
+    "customerId":"CUST-101",
+    "receiptType":"DISCLOSURE",
+    "deliveryChannel":"EMAIL",
+    "recipient":"customer@example.com",
+    "receivedAt":"2025-01-15T10:00:00Z",
+    "referenceNumber":"DISC-1001",
+    "notes":"Disclosure delivered by email"
+  }'
+
+curl -X POST http://localhost:8080/api/disclosures/v1/disclosure-receipts/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId":"CUST-101",
+    "receiptType":"DISCLOSURE",
+    "status":"CREATED",
+    "fromReceivedAt":"2026-09-01T00:00:00Z",
+    "toReceivedAt":"2026-09-08T23:59:59Z"
+  }'
+
+curl -X POST http://localhost:8080/api/disclosures/v1/receipt/display \
+  -H "Content-Type: application/json" \
+  -d '{
+    "receiptId":"REC-1001",
+    "workActionId":"WA-1001",
+    "customerId":"CUST-101",
+    "referenceNumber":"DISC-1001",
+    "displayedBy":"review-team"
+  }'
+```
+
+## Receipt display event
+
+`POST /api/disclosures/v1/receipt/display` returns `202 Accepted` and publishes a
+JSON event to the `receipt-display` Kafka topic (override with
+`KAFKA_RECEIPT_DISPLAY_TOPIC`).
+
+Sample response:
+
+```json
+{
+  "status": "SUCCESS",
+  "statusCode": 202,
+  "message": "Receipt display event published.",
+  "errors": [],
+  "warnings": [],
+  "data": {
+    "eventId": "d472f3d1-9e62-42fe-90ae-a8513bcb2fed",
+    "receiptId": "REC-1001",
+    "topic": "receipt-display",
+    "publishedAt": "2026-09-25T10:30:00Z"
+  }
+}
 ```
 
 ## Azure Monitor / OpenTelemetry
@@ -40,6 +97,6 @@ The POM includes `azure-monitor-opentelemetry-autoconfigure` as requested. Suppl
 
 ## Notes
 - DTOs are separate from domain and JPA entity representations.
-- Search is POST `/search`; create is POST on the resource root.
+- Disclosure receipt search is POST `/api/disclosures/v1/disclosure-receipts/search` and requires at least one criterion.
 - Errors use the Section 13 standard response fields and include a trace ID when an active OpenTelemetry span exists.
 - For production, replace `ddl-auto: update` with Liquibase migrations.
